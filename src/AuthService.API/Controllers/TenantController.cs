@@ -1,7 +1,9 @@
+using AuthService.API.Models;
 using AuthService.Application.CommandHandlers;
 using AuthService.Application.DTOs;
 using AuthService.Application.Mediator;
 using AuthService.Application.QueryHandlers;
+using AuthService.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -23,39 +25,40 @@ namespace AuthService.API.Controllers
         {
             var command = new UpdateTenantCommand { Id = id, IsDeleted = true };
             var result = await _mediator.SendAsync(command, cancellationToken);
-            return Ok(HttpStatusCode.NoContent);
+            // return NoContent();
+            return StatusCode((int)HttpStatusCode.Accepted, ApiResponse<TenantDto>.Ok(new TenantDto { }));
         }
 
         [HttpPut]
-        public async Task<ActionResult<TenantDto>> UpdateTenant([FromBody] UpdateTenantDto dto, CancellationToken cancellationToken)
+        public async Task<ActionResult<ApiResponse<TenantDto>>> UpdateTenant([FromBody] UpdateTenantDto dto, CancellationToken cancellationToken)
         {
             var command = new UpdateTenantCommand { Id = dto.Id, Name = dto.Name };
             var result = await _mediator.SendAsync(command, cancellationToken);
-            return Ok(result);
+            return Ok(ApiResponse<TenantDto>.Ok(result));
         }
 
         [HttpPost]
-        public async Task<ActionResult<TenantDto>> CreateTenant([FromBody] CreateTenantDto dto, CancellationToken cancellationToken)
+        public async Task<ActionResult<ApiResponse<TenantDto>>> CreateTenant([FromBody] CreateTenantDto dto, CancellationToken cancellationToken)
         {
             var command = new CreateTenantCommand { Name = dto.Name };
             var result = await _mediator.SendAsync(command, cancellationToken);
-            return CreatedAtAction(nameof(GetTenantById), new { id = result.Id, version = "1.0" }, result);
+            return Created(string.Empty, ApiResponse<TenantDto>.Ok(result));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<TenantDto>> GetTenantById(Guid id, CancellationToken cancellationToken)
+        public async Task<ActionResult<ApiResponse<TenantDto>>> GetTenantById(Guid id, CancellationToken cancellationToken)
         {
             var query = new GetTenantByIdQuery(id);
             var result = await _mediator.SendAsync(query, cancellationToken);
-            return Ok(result);
+            return Ok(ApiResponse<TenantDto>.Ok(result));
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TenantDto>>> GetAllTenants(CancellationToken cancellationToken)
+        public async Task<ActionResult<ApiResponse<IEnumerable<TenantDto>>>> GetAllTenants(CancellationToken cancellationToken)
         {
             var query = new GetAllTenantsQuery();
-            var result = await _mediator.SendAsync(query, cancellationToken);
-            return Ok(result);
+            var tenants = await _mediator.SendAsync(query, cancellationToken);
+            return Ok(ApiResponse<IEnumerable<TenantDto>>.Ok(tenants));
         }
     }
 }

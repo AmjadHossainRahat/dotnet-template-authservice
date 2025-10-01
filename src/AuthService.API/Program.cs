@@ -20,6 +20,8 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 
+app.UseMiddleware<AuthService.API.Middleware.GlobalExceptionMiddleware>();
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

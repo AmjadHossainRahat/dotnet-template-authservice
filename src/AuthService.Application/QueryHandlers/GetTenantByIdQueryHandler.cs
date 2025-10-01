@@ -1,4 +1,5 @@
 ﻿using AuthService.Application.DTOs;
+using AuthService.Application.Exceptions;
 using AuthService.Application.Mediator;
 using AuthService.Domain.Repositories;
 
@@ -17,7 +18,9 @@ namespace AuthService.Application.QueryHandlers
         {
             var tenant = await _tenantRepository.GetByIdAsync(request.Id, cancellationToken);
             if (tenant == null)
-                throw new KeyNotFoundException($"Tenant with Id '{request.Id}' not found.");
+            {
+                throw new NotFoundException($"Tenant with id {request.Id} not found.");
+            }
 
             return new TenantDto
             {
