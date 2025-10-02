@@ -20,6 +20,7 @@ namespace AuthService.API.Controllers
         // Simulated in-memory users (replace with repository in production)
         private static readonly Dictionary<string, (string Password, List<string> Roles)> _users = new()
         {
+            { "amjad", ("123456", new List<string> { "SystemAdmin" }) },
             { "alice", ("Password123!", new List<string> { "TenantAdmin", "TenantOperator" }) },
             { "bob", ("Password123!", new List<string> { "TenantAnalyst" }) }
         };
@@ -29,6 +30,7 @@ namespace AuthService.API.Controllers
 
         public AuthController(ITokenService tokenService) => _tokenService = tokenService;
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<ApiResponse<LoginResponse>>> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
         {

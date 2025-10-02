@@ -1,8 +1,11 @@
+using AuthService.API.Authorization;
 using AuthService.API.Services;
 using AuthService.API.Settings;
 using AuthService.Domain.Repositories;
 using AuthService.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,6 +19,19 @@ builder.Services.AddCustomMediator();
 builder.Services.AddSingleton<ITenantRepository, InMemoryTenantRepository>();
 
 builder.Services.AddHttpContextAccessor();
+
+var endpointRolesSettings = new EndpointRolesSettings();
+builder.Configuration.GetSection("EndpointRoles").Bind(endpointRolesSettings.RolesPerEndpoint);
+builder.Services.AddSingleton<EndpointRolesSettings>(endpointRolesSettings);
+
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("EndpointRolesPolicy", policy =>
+        policy.Requirements.Add(new EndpointRolesRequirement()));
+});
+
+builder.Services.AddSingleton<IAuthorizationHandler, EndpointRolesRequirementHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
