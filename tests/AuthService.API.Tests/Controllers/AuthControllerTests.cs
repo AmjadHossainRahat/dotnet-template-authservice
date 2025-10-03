@@ -6,13 +6,7 @@ using AuthService.Domain.Repositories;
 using AuthService.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AuthService.API.Tests.Controllers
 {
