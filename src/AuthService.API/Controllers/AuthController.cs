@@ -1,5 +1,3 @@
-// File: AuthService.API/Controllers/AuthController.cs
-// Namespace: AuthService.API.Controllers
 using AuthService.API.Models;
 using AuthService.API.Services;
 using AuthService.Domain.Entities;
