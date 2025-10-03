@@ -4,11 +4,14 @@ namespace AuthService.Domain.Repositories
 {
     public interface IUserRepository
     {
-        Task<User?> GetByIdAsync(Guid id);
-        Task<User?> GetByEmailAsync(string email, Guid tenantId);
-        Task<IEnumerable<User>> GetAllByTenantAsync(Guid tenantId);
-        Task AddAsync(User user);
-        Task UpdateAsync(User user);
-        Task DeleteAsync(Guid id);
+        Task<User?> GetByLoginIdentifierAsync(string loginIdentifier, CancellationToken cancellationToken);
+        Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken);
+        Task<bool> ExistsByUsernameAsync(string username, CancellationToken cancellationToken);
+        Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken);
+        Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken);
+        Task<User?> GetByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken);
+        Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+        Task AddAsync(User user, CancellationToken cancellationToken);
+        Task<IEnumerable<User>> GetAllAsync(CancellationToken cancellationToken);
     }
 }

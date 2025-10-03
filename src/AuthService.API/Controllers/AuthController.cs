@@ -1,52 +1,76 @@
+// File: AuthService.API/Controllers/AuthController.cs
+// Namespace: AuthService.API.Controllers
 using AuthService.API.Models;
 using AuthService.API.Services;
+using AuthService.Domain.Entities;
+using AuthService.Domain.Repositories;
+using AuthService.Shared.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 
 namespace AuthService.API.Controllers
 {
-    //[ApiController]
-    //[Route("api/v{version:apiVersion}/[controller]")]
-    //[ApiVersion("1.0")]
     [ApiController]
     [Route("api/v1/auth")]
     public class AuthController : ControllerBase
     {
         private readonly ITokenService _tokenService;
+        private readonly IUserRepository _userRepository;
+        private readonly IPasswordHasher _passwordHasher;
 
-        // Simulated in-memory users (replace with repository in production)
-        private static readonly Dictionary<string, (string Password, List<string> Roles)> _users = new()
+        // In-memory refresh token store (replace with DB/Redis in production)
+        private static readonly Dictionary<string, (Guid UserId, DateTime Expiry)> _refreshTokens = new();
+
+        public AuthController(ITokenService tokenService, IUserRepository userRepository, IPasswordHasher passwordHasher)
         {
-            { "amjad", ("123456", new List<string> { "SystemAdmin" }) },
-            { "alice", ("Password123!", new List<string> { "TenantAdmin", "TenantOperator" }) },
-            { "bob", ("Password123!", new List<string> { "TenantAnalyst" }) }
-        };
+            _tokenService = tokenService;
+            _userRepository = userRepository;
+            _passwordHasher = passwordHasher;
+        }
 
-        // In-memory refresh token store (replace with DB/Redis)
-        private static readonly Dictionary<string, (string RefreshToken, DateTime Expiry)> _refreshTokens = new();
+        [Authorize(Policy = "EndpointRolesPolicy")]
+        [HttpPost("register")]
+        public async Task<ActionResult<ApiResponse<string>>> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
+        {
+            // Check for existing user
+            if (await _userRepository.ExistsByEmailAsync(request.Email, cancellationToken))
+                return Conflict(ApiResponse<string>.Fail("Email already registered", "EMAIL_EXISTS", 409));
 
-        public AuthController(ITokenService tokenService) => _tokenService = tokenService;
+            if (await _userRepository.ExistsByUsernameAsync(request.Username, cancellationToken))
+                return Conflict(ApiResponse<string>.Fail("Username already taken", "USERNAME_EXISTS", 409));
+
+            var passwordHash = _passwordHasher.HashPassword(request.Password);
+
+            var tenantId = string.IsNullOrEmpty(request.TenantId)
+                ? throw new MissingFieldException("TenantId is required")
+                : Guid.Parse(request.TenantId);
+
+            var user = new User(request.Email, request.Username, request.PhoneNumber, passwordHash, tenantId);
+
+            await _userRepository.AddAsync(user, cancellationToken);
+
+            return Ok(ApiResponse<string>.Ok("User registered successfully"));
+        }
 
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<ApiResponse<LoginResponse>>> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
         {
-            if (!_users.TryGetValue(request.Username, out var userInfo) || userInfo.Password != request.Password)
+            var user = await _userRepository.GetByLoginIdentifierAsync(request.LoginIdentifier, cancellationToken);
+            if (user == null || !_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
                 return Unauthorized(ApiResponse<LoginResponse>.Fail("Invalid credentials", "INVALID_CREDENTIALS", 401));
 
-            // Generate Access Token
-            var accessToken = await _tokenService.GenerateToken(request.Username, request.TenantId, userInfo.Roles, cancellationToken);
+            var roles = user.Roles.Select(r => r.Name).ToList();
+
+            var accessToken = await _tokenService.GenerateToken(user.Id.ToString(), user.TenantId.ToString(), roles, cancellationToken);
             var accessTokenExpiry = DateTime.UtcNow.AddMinutes(60);
 
-            // Generate Refresh Token
             var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
             var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-
-            // Save refresh token in memory (replace with DB/Redis)
-            _refreshTokens[refreshToken] = (request.Username, refreshTokenExpiry);
+            _refreshTokens[refreshToken] = (user.Id, refreshTokenExpiry);
 
             var response = new LoginResponse
             {
@@ -62,28 +86,32 @@ namespace AuthService.API.Controllers
         [HttpPost("refresh-token")]
         public async Task<ActionResult<ApiResponse<LoginResponse>>> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
         {
-            if (!_refreshTokens.ContainsKey(request.RefreshToken))
+            if (!_refreshTokens.TryGetValue(request.RefreshToken, out var tokenInfo))
                 return Unauthorized(ApiResponse<LoginResponse>.Fail("Invalid refresh token", "INVALID_REFRESH_TOKEN", 401));
 
-            var (username, expiryAt) = _refreshTokens[request.RefreshToken];
-            if (expiryAt < DateTime.UtcNow)
+            if (tokenInfo.Expiry < DateTime.UtcNow)
             {
                 _refreshTokens.Remove(request.RefreshToken);
                 return Unauthorized(ApiResponse<LoginResponse>.Fail("Refresh token expired", "EXPIRED_REFRESH_TOKEN", 401));
             }
-            
-            var userInfo = _users[username];
-            var tenantId = "tenant1"; // Should be retrieved from DB per user
 
-            //var newAccessToken = await _tokenService.GenerateToken(tokenInfo.RefreshToken, tenantId, userInfo.Roles, cancellationToken);
-            var newAccessToken = await _tokenService.GenerateToken(username, tenantId, userInfo.Roles, cancellationToken);
+            var user = await _userRepository.GetByIdAsync(tokenInfo.UserId, cancellationToken);
+            if (user == null)
+            {
+                _refreshTokens.Remove(request.RefreshToken);
+                return Unauthorized(ApiResponse<LoginResponse>.Fail("User not found", "USER_NOT_FOUND", 401));
+            }
+
+            var roles = user.Roles.Select(r => r.Name).ToList();
+
+            var newAccessToken = await _tokenService.GenerateToken(user.Id.ToString(), user.TenantId.ToString(), roles, cancellationToken);
             var accessTokenExpiry = DateTime.UtcNow.AddMinutes(60);
 
             var newRefreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
             var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
             _refreshTokens.Remove(request.RefreshToken);
-            _refreshTokens[newRefreshToken] = (newRefreshToken, refreshTokenExpiry);
+            _refreshTokens[newRefreshToken] = (user.Id, refreshTokenExpiry);
 
             var response = new LoginResponse
             {
@@ -100,7 +128,7 @@ namespace AuthService.API.Controllers
         [Authorize]
         public async Task<ActionResult<ApiResponse<string>>> Logout([FromBody] LogoutRequest request, CancellationToken cancellationToken)
         {
-            await Task.Delay(millisecondsDelay: 0, cancellationToken);
+            await Task.Delay(0, cancellationToken);
 
             if (_refreshTokens.ContainsKey(request.RefreshToken))
                 _refreshTokens.Remove(request.RefreshToken);
@@ -108,19 +136,33 @@ namespace AuthService.API.Controllers
             return Ok(ApiResponse<string>.Ok("Logged out successfully"));
         }
 
-        // TODO: not working yet
         [HttpGet("me")]
         [Authorize]
         public async Task<ActionResult<ApiResponse<object>>> Me(CancellationToken cancellationToken)
         {
-            await Task.Delay(millisecondsDelay: 0, cancellationToken);
+            await Task.Delay(0, cancellationToken);
 
-            //var username = User.Identity?.Name ?? "Unknown";
-            var username = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "Unknown";
-            var tenantId = User.Claims.FirstOrDefault(c => c.Type == "TenantId")?.Value ?? "Unknown";
-            var roles = User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToList();
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value
+                              ?? User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
 
-            return Ok(ApiResponse<object>.Ok(new { username, tenantId, roles }));
+            if (!Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized(ApiResponse<object>.Fail("Invalid user claims", "INVALID_CLAIMS", 401));
+
+            var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+            if (user == null)
+                return Unauthorized(ApiResponse<object>.Fail("User not found", "USER_NOT_FOUND", 401));
+
+            var roles = user.Roles.Select(r => r.Name).ToList();
+
+            return Ok(ApiResponse<object>.Ok(new
+            {
+                user.Id,
+                user.Email,
+                user.Username,
+                user.PhoneNumber,
+                user.TenantId,
+                Roles = roles
+            }));
         }
     }
 }

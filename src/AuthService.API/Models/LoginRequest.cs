@@ -4,13 +4,18 @@ namespace AuthService.API.Models
 {
     public class LoginRequest
     {
+        /// <summary>
+        /// Username, Email, or PhoneNumber used to login
+        /// </summary>
         [Required]
-        public string Username { get; set; } = string.Empty;
+        public string LoginIdentifier { get; set; } = string.Empty;
 
         [Required]
         public string Password { get; set; } = string.Empty;
 
-        [Required]
-        public string TenantId { get; set; } = string.Empty;
+        /// <summary>
+        /// Optional if multi-tenant is enforced
+        /// </summary>
+        public string? TenantId { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using AuthService.API.Services;
 using AuthService.API.Settings;
 using AuthService.Domain.Repositories;
 using AuthService.Infrastructure.Repositories;
+using AuthService.Shared.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
@@ -16,7 +17,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
 builder.Services.AddCustomMediator();
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddSingleton<ITenantRepository, InMemoryTenantRepository>();
+builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
 
 builder.Services.AddHttpContextAccessor();
 
