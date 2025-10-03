@@ -24,21 +24,21 @@ namespace AuthService.Infrastructure.Repositories
 
             // Seed users with roles
             var user1 = new User("amjad@example.com", "amjad", string.Empty, _passwordHasher.HashPassword("123456"), tenant1);
-            user1.AssignRole(new Role("SystemAdmin", tenant1));
+            user1.AssignRole(new Role(RoleEnum.SystemAdmin, tenant1));
             _users[user1.Id] = user1;
 
             var user2 = new User("alice@example.com", "alice", string.Empty, _passwordHasher.HashPassword("Password123!"), tenant1);
-            user2.AssignRole(new Role("TenantAdmin", tenant1));
-            user2.AssignRole(new Role("TenantOperator", tenant1));
+            user2.AssignRole(new Role(RoleEnum.TenantAdmin, tenant1));
+            user2.AssignRole(new Role(RoleEnum.TenantOperator, tenant1));
             _users[user2.Id] = user2;
 
             var user3 = new User("bob@example.com", "bob", string.Empty, _passwordHasher.HashPassword("Password123!"), tenant2);
-            user3.AssignRole(new Role("TenantAnalyst", tenant1));
+            user3.AssignRole(new Role(RoleEnum.TenantAnalyst, tenant1));
             _users[user3.Id] = user3;
 
             // Optional: add more users with different combinations
             var user4 = new User("charlie@example.com", "charlie", string.Empty, _passwordHasher.HashPassword("SecretPass!"), tenant2);
-            user4.AssignRole(new Role("TenantOperator", tenant1));
+            user4.AssignRole(new Role(RoleEnum.TenantOperator, tenant1));
             _users[user4.Id] = user4;
         }
 

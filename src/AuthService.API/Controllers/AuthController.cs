@@ -63,9 +63,9 @@ namespace AuthService.API.Controllers
             if (user == null || !_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
                 return Unauthorized(ApiResponse<LoginResponse>.Fail("Invalid credentials", "INVALID_CREDENTIALS", 401));
 
-            var roles = user.Roles.Select(r => r.Name).ToList();
+            var roles = user.Roles.Select(r => r.RoleType.ToString()).ToList();
 
-            var accessToken = await _tokenService.GenerateToken(user.Id.ToString(), user.TenantId.ToString(), roles, cancellationToken);
+            var accessToken = await _tokenService.GenerateToken(user, cancellationToken);
             var accessTokenExpiry = DateTime.UtcNow.AddMinutes(60);
 
             var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
@@ -102,9 +102,9 @@ namespace AuthService.API.Controllers
                 return Unauthorized(ApiResponse<LoginResponse>.Fail("User not found", "USER_NOT_FOUND", 401));
             }
 
-            var roles = user.Roles.Select(r => r.Name).ToList();
+            var roles = user.Roles.Select(r => r.RoleType.ToString()).ToList();
 
-            var newAccessToken = await _tokenService.GenerateToken(user.Id.ToString(), user.TenantId.ToString(), roles, cancellationToken);
+            var newAccessToken = await _tokenService.GenerateToken(user, cancellationToken);
             var accessTokenExpiry = DateTime.UtcNow.AddMinutes(60);
 
             var newRefreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
@@ -152,7 +152,7 @@ namespace AuthService.API.Controllers
             if (user == null)
                 return Unauthorized(ApiResponse<object>.Fail("User not found", "USER_NOT_FOUND", 401));
 
-            var roles = user.Roles.Select(r => r.Name).ToList();
+            var roles = user.Roles.Select(r => r.RoleType.ToString()).ToList();
 
             return Ok(ApiResponse<object>.Ok(new
             {
