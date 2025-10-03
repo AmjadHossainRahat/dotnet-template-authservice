@@ -19,7 +19,7 @@
             Id = Guid.NewGuid();
             Email = email ?? throw new ArgumentNullException(nameof(email));
             Username = username ?? throw new ArgumentNullException(nameof(username));
-            PhoneNumber = phoneNumber ?? throw new ArgumentNullException(nameof(phoneNumber));
+            PhoneNumber = phoneNumber;
             PasswordHash = passwordHash ?? throw new ArgumentNullException(nameof(passwordHash));
             TenantId = tenantId;
         }
