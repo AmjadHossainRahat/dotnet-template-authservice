@@ -2,13 +2,13 @@
 {
     public class User
     {
-        public Guid Id { get; private set; }
-        public string Email { get; private set; }
-        public string Username { get; private set; }
-        public string? PhoneNumber { get; private set; }
-        public string PasswordHash { get; private set; }
-        public Guid TenantId { get; private set; }
-        public Tenant Tenant { get; private set; }
+        public Guid Id { get; set; }
+        public string Email { get; set; }
+        public string Username { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string PasswordHash { get; set; }
+        public Guid TenantId { get; set; }
+        public Tenant Tenant { get; set; }
 
         public ICollection<Role> Roles { get; private set; } = new List<Role>();
 

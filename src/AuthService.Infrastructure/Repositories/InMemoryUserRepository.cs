@@ -48,6 +48,21 @@ namespace AuthService.Infrastructure.Repositories
             await Task.CompletedTask;
         }
 
+        public async Task UpdateAsync(User user, CancellationToken cancellationToken)
+        {
+            if (!_users.ContainsKey(user.Id))
+                throw new KeyNotFoundException("Cannot update: user not found.");
+
+            _users[user.Id] = user;
+            await Task.CompletedTask;
+        }
+
+        public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+        {
+            _users.TryRemove(id, out _);
+            await Task.CompletedTask;
+        }
+
         public async Task<IEnumerable<User>> GetAllAsync(CancellationToken cancellationToken)
         {
             return await Task.FromResult(_users.Values.AsEnumerable());
