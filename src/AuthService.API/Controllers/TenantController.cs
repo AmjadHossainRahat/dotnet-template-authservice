@@ -75,6 +75,7 @@ namespace AuthService.API.Controllers
             return Ok(ApiResponse<TenantDto>.Ok(result));
         }
 
+        [AllowAnonymous]
         [HttpGet("GetAll")]
         public async Task<ActionResult<ApiResponse<IEnumerable<TenantDto>>>> GetAll(CancellationToken cancellationToken)
         {
