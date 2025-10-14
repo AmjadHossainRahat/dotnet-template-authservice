@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 
 namespace AuthService.API.Controllers
 {
+    [Authorize(Policy = "EndpointRolesPolicy")]
     [ApiController]
     [Route("api/v1/auth")]
     public class AuthController : ControllerBase
@@ -29,7 +30,6 @@ namespace AuthService.API.Controllers
             _passwordHasher = passwordHasher;
         }
 
-        [Authorize(Policy = "EndpointRolesPolicy")]
         [HttpPost("register")]
         public async Task<ActionResult<ApiResponse<string>>> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
         {
@@ -123,7 +123,6 @@ namespace AuthService.API.Controllers
         }
 
         [HttpPost("logout")]
-        [Authorize]
         public async Task<ActionResult<ApiResponse<string>>> Logout([FromBody] LogoutRequest request, CancellationToken cancellationToken)
         {
             await Task.Delay(0, cancellationToken);
@@ -135,7 +134,6 @@ namespace AuthService.API.Controllers
         }
 
         [HttpGet("me")]
-        [Authorize]
         public async Task<ActionResult<ApiResponse<object>>> Me(CancellationToken cancellationToken)
         {
             await Task.Delay(0, cancellationToken);
