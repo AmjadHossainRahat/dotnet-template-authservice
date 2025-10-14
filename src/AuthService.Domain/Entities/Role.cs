@@ -3,7 +3,7 @@
 public class Role
 {
     public Guid Id { get; private set; }
-    public RoleEnum RoleType { get; private set; } // <-- renamed
+    public RoleEnum RoleType { get; private set; }
     public Guid TenantId { get; private set; }
     public Tenant Tenant { get; private set; }
 

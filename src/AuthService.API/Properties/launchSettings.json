@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "AuthService.API": {
+    "AuthService": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

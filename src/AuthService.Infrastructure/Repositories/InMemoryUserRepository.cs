@@ -19,8 +19,8 @@ namespace AuthService.Infrastructure.Repositories
         private void AddDummyUsers()
         {
             // Seed tenants
-            var tenant1 = Guid.NewGuid();
-            var tenant2 = Guid.NewGuid();
+            var tenant1 = Guid.Parse("5b469814-ce76-48e7-8a79-c9fe56dbf0e7");
+            var tenant2 = Guid.Parse("70a82593-1d6f-4e25-bf94-20792f04f34d");
 
             // Seed users with roles
             var user1 = new User("amjad@example.com", "amjad", string.Empty, _passwordHasher.HashPassword("123456"), tenant1);
