@@ -5,12 +5,12 @@ using AuthService.Application.Exceptions;
 
 namespace AuthService.API.Middleware
 {
-    public class GlobalExceptionMiddleware
+    public class CustomGlobalExceptionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ILogger<GlobalExceptionMiddleware> _logger;
+        private readonly ILogger<CustomGlobalExceptionMiddleware> _logger;
 
-        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+        public CustomGlobalExceptionMiddleware(RequestDelegate next, ILogger<CustomGlobalExceptionMiddleware> logger)
         {
             _next = next;
             _logger = logger;

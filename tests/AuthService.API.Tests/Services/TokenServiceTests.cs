@@ -3,7 +3,6 @@ using AuthService.API.Settings;
 using AuthService.Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Security.Cryptography;
 
 namespace AuthService.API.Tests.Services
@@ -12,14 +11,12 @@ namespace AuthService.API.Tests.Services
     public class TokenServiceTests
     {
         private JwtSettings _jwtSettings = null!;
-        private RSA _rsa = null!;
+        private RSA _rsa = RSA.Create();
         private TokenService _tokenService = null!;
 
         [SetUp]
         public void Setup()
         {
-            // Setup RSA key for signing (pair)
-            _rsa = RSA.Create();
             _rsa.KeySize = 2048;
 
             // Setup JwtSettings

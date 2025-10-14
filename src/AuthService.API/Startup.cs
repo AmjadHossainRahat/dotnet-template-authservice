@@ -1,4 +1,5 @@
 using AuthService.API.Extensions;
+using AuthService.API.Middleware;
 using AuthService.API.Services;
 using AuthService.Domain.Repositories;
 using AuthService.Infrastructure.Repositories;
@@ -29,6 +30,8 @@ namespace AuthService.API
             services.AddCustomAuthorization(_configuration);
             services.SetupJwtBearer(_configuration, _environment);
 
+            services.AddCustomHealthChecks();
+
             services.AddControllers();
             services.AddSwaggerGen(SwaggerExtensions.ConfigureSwaggerGen);
         }
@@ -41,10 +44,13 @@ namespace AuthService.API
                 app.UseSwaggerUI();
             }
 
-            app.UseMiddleware<Middleware.GlobalExceptionMiddleware>();
+            app.UseMiddleware<CustomGlobalExceptionMiddleware>();
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseCustomHealthChecks();
+
             app.MapControllers();
         }
     }
