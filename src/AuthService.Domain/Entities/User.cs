@@ -11,6 +11,8 @@
         public Tenant Tenant { get; set; }
 
         public ICollection<Role> Roles { get; private set; } = new List<Role>();
+        public bool IsDeleted { get; set; } = false;
+        public DateTime DeletedAt { get; set; }
 
         private User() { } // For EF Core
 

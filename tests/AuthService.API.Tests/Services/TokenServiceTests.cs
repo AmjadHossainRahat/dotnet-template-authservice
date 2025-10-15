@@ -11,13 +11,14 @@ namespace AuthService.API.Tests.Services
     public class TokenServiceTests
     {
         private JwtSettings _jwtSettings = null!;
-        private RSA _rsa = RSA.Create();
+        private RsaSecurityKey _rsaSecurityKey = null!;
         private TokenService _tokenService = null!;
 
         [SetUp]
         public void Setup()
         {
-            _rsa.KeySize = 2048;
+            var rsa = RSA.Create();
+            rsa.KeySize = 2048;
 
             // Setup JwtSettings
             _jwtSettings = new JwtSettings
@@ -27,7 +28,8 @@ namespace AuthService.API.Tests.Services
                 ExpiryMinutes = 60
             };
 
-            _tokenService = new TokenService(_jwtSettings, _rsa);
+            _tokenService = new TokenService(_jwtSettings, rsa);
+            _rsaSecurityKey = new RsaSecurityKey(rsa);
         }
 
         [Test]
@@ -138,7 +140,8 @@ namespace AuthService.API.Tests.Services
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = _jwtSettings.Issuer,
                 ValidAudience = _jwtSettings.Audience,
-                IssuerSigningKey = new RsaSecurityKey(_rsa) // uses public portion from same RSA instance
+                //IssuerSigningKey = new RsaSecurityKey(_rsa) // uses public portion from same RSA instance
+                IssuerSigningKey = _rsaSecurityKey // uses public portion from same RSA instance
             };
 
             var handler = new JwtSecurityTokenHandler();
@@ -178,7 +181,8 @@ namespace AuthService.API.Tests.Services
                 ValidateLifetime = false,
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = "WrongIssuer",
-                IssuerSigningKey = new RsaSecurityKey(_rsa)
+                //IssuerSigningKey = new RsaSecurityKey(_rsa)
+                IssuerSigningKey = _rsaSecurityKey
             };
 
             var handler = new JwtSecurityTokenHandler();

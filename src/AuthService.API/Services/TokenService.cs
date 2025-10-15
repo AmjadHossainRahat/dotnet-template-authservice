@@ -47,7 +47,8 @@ namespace AuthService.API.Services
             };
             if (!string.IsNullOrEmpty(user.PhoneNumber)) claims.Add(new Claim("PhoneNumber", user.PhoneNumber));
 
-            claims.AddRange(user.Roles.Select(r => new Claim(ClaimTypes.Role, r.RoleType.ToString())));
+            //claims.AddRange(user.Roles.Select(r => new Claim(ClaimTypes.Role, r.RoleType.ToString())));
+            claims.AddRange(user.Roles.Select(r => new Claim("roles", r.RoleType.ToString())));
 
             var token = new JwtSecurityToken(
                 issuer: _jwtSettings.Issuer,

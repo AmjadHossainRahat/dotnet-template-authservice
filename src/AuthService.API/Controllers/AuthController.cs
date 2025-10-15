@@ -61,8 +61,6 @@ namespace AuthService.API.Controllers
             if (user == null || !_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
                 return Unauthorized(ApiResponse<LoginResponse>.Fail("Invalid credentials", "INVALID_CREDENTIALS", 401));
 
-            var roles = user.Roles.Select(r => r.RoleType.ToString()).ToList();
-
             var accessToken = await _tokenService.GenerateToken(user, cancellationToken);
             var accessTokenExpiry = DateTime.UtcNow.AddMinutes(60);
 

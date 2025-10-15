@@ -56,7 +56,7 @@ namespace AuthService.API.Authorization
                 return Task.CompletedTask;
             }
 
-            if (allowedRoles.Any(role => context.User.IsInRole(role)))
+            if (allowedRoles.Any(role => context.User.IsInRole(role) || role.Equals("*")))
             {
                 context.Succeed(requirement);
             }

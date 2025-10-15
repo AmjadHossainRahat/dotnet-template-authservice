@@ -31,6 +31,17 @@ artifacts/
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
+# Dev SQLite DB
+*.db
+*.db-shm
+*.db-wal
+
+# Dev SQLite DB
+*.db
+*.db-shm
+*.db-wal
+
+
 # NuGet Packages
 *.nupkg
 # NuGet Symbol Packages
