@@ -2,6 +2,7 @@ using AuthService.API.Extensions;
 using AuthService.API.Middleware;
 using AuthService.API.Services;
 using AuthService.Domain.Repositories;
+using AuthService.Infrastructure.Caching;
 using AuthService.Infrastructure.Repositories;
 using AuthService.Shared.Services;
 
@@ -22,6 +23,7 @@ namespace AuthService.API
         {
             // Add EF DbContext
             services.AddApplicationDatabase(_configuration, _environment);
+            services.AddCustomCaching(_configuration, _environment);
 
             if (_environment.IsDevelopment())
             {
@@ -35,6 +37,9 @@ namespace AuthService.API
                             .AllowAnyMethod();
                     });
                 });
+
+                services.AddMemoryCache();
+                services.AddSingleton<ICacheService, InMemoryCacheService>();
             }
 
             // Core services
@@ -58,10 +63,9 @@ namespace AuthService.API
 
         public void Configure(WebApplication app, IWebHostEnvironment env)
         {
+            app.UseApplicationDatabase(env);    // migrate automatically in Dev only
             if (env.IsDevelopment())
             {
-                app.UseApplicationDatabase(env);    // migrate automatically in Dev only
-
                 app.UseRouting();
                 app.UseCors();
 

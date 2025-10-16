@@ -3,6 +3,7 @@ using AuthService.API.Models;
 using AuthService.API.Services;
 using AuthService.Domain.Entities;
 using AuthService.Domain.Repositories;
+using AuthService.Infrastructure.Caching;
 using AuthService.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -16,6 +17,7 @@ namespace AuthService.API.Tests.Controllers
         private Mock<ITokenService> _tokenServiceMock;
         private Mock<IUserRepository> _userRepositoryMock;
         private Mock<IPasswordHasher> _passwordHasherMock;
+        private Mock<ICacheService> _cacheServiceMock;
         private AuthController _controller;
 
         [SetUp]
@@ -24,8 +26,9 @@ namespace AuthService.API.Tests.Controllers
             _tokenServiceMock = new Mock<ITokenService>();
             _userRepositoryMock = new Mock<IUserRepository>();
             _passwordHasherMock = new Mock<IPasswordHasher>();
+            _cacheServiceMock = new Mock<ICacheService>();
 
-            _controller = new AuthController(_tokenServiceMock.Object, _userRepositoryMock.Object, _passwordHasherMock.Object);
+            _controller = new AuthController(_tokenServiceMock.Object, _userRepositoryMock.Object, _passwordHasherMock.Object, _cacheServiceMock.Object);
         }
 
         #region Register Tests
