@@ -1,8 +1,7 @@
 ﻿using AuthService.Domain.Entities;
 
-public class Role
+public class Role : BaseEntity
 {
-    public Guid Id { get; private set; }
     public RoleEnum RoleType { get; private set; }
     public Guid TenantId { get; private set; }
     public Tenant Tenant { get; private set; }

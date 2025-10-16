@@ -1,13 +1,8 @@
 ﻿namespace AuthService.Domain.Entities
 {
-    public class Tenant
+    public class Tenant : BaseEntity
     {
-        public Guid Id { get; private set; }
         public string Name { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public DateTime DeletedAt { get; set; }
-        public bool IsDeleted { get; set; }
 
         public ICollection<User> Users { get; private set; } = new List<User>();
         public ICollection<Role> Roles { get; private set; } = new List<Role>();

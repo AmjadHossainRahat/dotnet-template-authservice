@@ -1,8 +1,7 @@
 ﻿namespace AuthService.Domain.Entities
 {
-    public class User
+    public class User : BaseEntity
     {
-        public Guid Id { get; set; }
         public string Email { get; set; }
         public string Username { get; set; }
         public string? PhoneNumber { get; set; }
@@ -11,8 +10,6 @@
         public Tenant Tenant { get; set; }
 
         public ICollection<Role> Roles { get; private set; } = new List<Role>();
-        public bool IsDeleted { get; set; } = false;
-        public DateTime DeletedAt { get; set; }
 
         private User() { } // For EF Core
 
