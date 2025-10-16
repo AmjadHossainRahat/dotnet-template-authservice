@@ -1,6 +1,5 @@
 using AuthService.API.Models;
 using AuthService.API.Services;
-using AuthService.Application.Mediator;
 using AuthService.Domain.Entities;
 using AuthService.Domain.Repositories;
 using AuthService.Infrastructure.Caching;
